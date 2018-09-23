@@ -1,13 +1,30 @@
-const request=require('request')
-
-request({
-  url:'http://www.mapquestapi.com/geocoding/v1/address?key=VxYGR5AJAhGNMYq4LAwmlGQrZesnnU6L&location=1301%20lombard%20street%20philadelphia'
-  ,
-  json:true
-},(error,response,body)=>{
-  // console.log(JSON.stringify(response, undefined, 2))
-  console.log(`Address: ${body.results[0].providedLocation.location}`)
-  console.log(`latitude: ${body.results[0].locations[0].latLng.lat}`)
-  console.log(`longitude: ${body.results[0].locations[0].latLng.lng}`)
-
+const request= require('request')
+const yargs= require('yargs')
+const geocode=require('./geocode/geocode.js')
+const weather= require('./weather/weather')
+const argv= yargs
+  .options({
+  a:{
+    demand:true,
+    alias: 'address',
+    describe : 'address to fetch weather for',
+    string:true
+  }
+})
+.help()
+.alias('help','h')
+.argv
+geocode.geocodedAddress(argv.a, (errorMessage, results)=>{
+  if(errorMessage){
+    console.log(errorMessage)
+  }else{
+    console.log(results.address)
+    weather.getWeather(results.latitude,results.longitude,(error, weatherResults)=>{
+      if(error){
+        console.log(error)
+      }else{
+        console.log(`Its currently ${weatherResults.temperature}. It feels like ${weatherResults.apparentTemperature}.`)
+      }
+    })
+  }
 })
